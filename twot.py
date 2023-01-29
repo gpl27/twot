@@ -13,6 +13,14 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 
 class TwitterAPI:
+    # TODO:
+    #   * optional username and password on constructor
+    #   * make self.logged private
+    #   * add set_user() function to change user&pwd
+    #   * add error handling to login (wrong user|pwd)
+    #   * add error handling to undefined tweet_ids
+    #   * add status() function
+
     def __init__(self, username, password):
         self.username = username
         self.password = password
@@ -64,12 +72,20 @@ class TwitterAPI:
         return tweet_link
 
     
+    def like_tweet(self, tweet_id):
+        if not self.logged:
+            print(f"[TwitterAPI:like_tweet] Must log in first")
+            return None
+        tweet_url = tweet_id_to_url(tweet_id)
+        self.driver.get(tweet_url)
+        like_button = self.wait.until(lambda d: d.find_element(By.XPATH, '//div[@aria-label="Like" or @aria-label="Liked"]'))
+        like_button.click()
+        like_label = like_button.get_attribute("aria-label")
+        like_status = True if like_label == "Liked" else False
+        return like_status
+
+
     # def reply_to_tweet(self, tweet_id, message):
-    #     tweet_url = tweet_id_to_url(tweet_id)
-    #     self.driver.get(tweet_url)
-
-
-    # def like_tweet(self, tweet_id):
     #     tweet_url = tweet_id_to_url(tweet_id)
     #     self.driver.get(tweet_url)
 

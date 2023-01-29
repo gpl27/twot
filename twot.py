@@ -10,24 +10,23 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.relative_locator import locate_with
+from selenium.webdriver.support.wait import WebDriverWait
 
 
 class TwitterAPI:
     # TODO:
-    #   * optional username and password on constructor
-    #   * make self.logged private
-    #   * add set_user() function to change user&pwd
     #   * add error handling to login (wrong user|pwd)
     #   * add error handling to undefined tweet_ids
-    #   * add status() function
     #   * add logger
+    #   * add follow/unfollow
+    #   * add send dm
+    #   * add check notifications/mentions
 
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.logged = False
+        self.__logged = False
         # Start the webdriver
         service = Service(executable_path="driver/chromedriver")
         self.driver = webdriver.Chrome(service=service)
@@ -45,8 +44,13 @@ class TwitterAPI:
         return tweet_link
     
 
+    def status(self):
+        print(f"Username: {self.username}")
+        print(f"Password: {'*'*len(self.password)}")
+        print(f"Logged: {self.__logged}")
+
     def login(self):
-        if (self.logged):
+        if (self.__logged):
             print(f"[TwitterAPI:login] Already logged in as {self.username}")
             return False
         self.driver.get("https://twitter.com/i/flow/login")
@@ -56,23 +60,23 @@ class TwitterAPI:
         passwd_input = self.wait.until(lambda d: d.find_element(By.NAME, "password"))
         passwd_input.send_keys(self.password + Keys.ENTER)
         self.wait.until(EC.title_contains("Home"))
-        self.logged = True
+        self.__logged = True
         return True
 
     def logout(self):
-        if not self.logged:
+        if not self.__logged:
             print(f"[TwitterAPI:logout] Must log in first")
             return False
         self.driver.get("https://twitter.com/logout")
         logout_button = self.wait.until(lambda d: d.find_element(By.XPATH, '//div[@data-testid="confirmationSheetConfirm"]'))
         logout_button.click()
         self.wait.until(EC.url_contains("?"))
-        self.logged = False
+        self.__logged = False
         return True
 
 
     def post_tweet(self, message):
-        if not self.logged:
+        if not self.__logged:
             print(f"[TwitterAPI:post_tweet] Must log in first")
             return ""
         self.driver.get("https://twitter.com/compose/tweet")
@@ -80,7 +84,7 @@ class TwitterAPI:
         
     
     def reply_to_tweet(self, tweet_id, message):
-        if not self.logged:
+        if not self.__logged:
             print(f"[TwitterAPI:reply_to_tweet] Must log in first")
             return ""
         tweet_url = tweet_id_to_url(tweet_id)
@@ -95,7 +99,7 @@ class TwitterAPI:
 
 
     def like_tweet(self, tweet_id):
-        if not self.logged:
+        if not self.__logged:
             print(f"[TwitterAPI:like_tweet] Must log in first")
             return None
         tweet_url = tweet_id_to_url(tweet_id)
@@ -111,7 +115,7 @@ class TwitterAPI:
 
     
     def retweet(self, tweet_id):
-        if not self.logged:
+        if not self.__logged:
             print(f"[TwitterAPI:like_tweet] Must log in first")
             return None
         tweet_url = tweet_id_to_url(tweet_id)
@@ -130,7 +134,7 @@ class TwitterAPI:
 
 
     def quote_retweet(self, tweet_id, message):
-        if not self.logged:
+        if not self.__logged:
             print(f"[TwitterAPI:quote_retweet] Must log in first")
             return None
         tweet_url = tweet_id_to_url(tweet_id)

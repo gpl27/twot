@@ -15,10 +15,8 @@ Author: gpl27
 """
 
 # TODO:
-#   * add error handling to login (wrong user|pwd)
 #   * add error handling to undefined tweet_ids
 #   * add logger
-#   * add follow/unfollow
 #   * add send dm
 #   * add check notifications/mentions
 
@@ -60,6 +58,8 @@ class TwitterAPI:
         Retweets/Unretweets the tweet
     quote_retweet(tweet_id, message)
         Quote retweets the tweet with the specified message
+    follow(user_handle)
+        Follows the user with the specified handle
     quit()
         Ends the browser session
     """
@@ -285,6 +285,94 @@ class TwitterAPI:
         return self._post(message)
 
 
+    def _get_follow_button(self, user_handle):
+        if not self.__logged:
+            print(f"[TwitterAPI:_get_follow_button] Must log in first")
+            return None
+        
+        user_url = self.handle_to_url(user_handle)
+        self.driver.get(user_url)
+        try:
+            follow_button = self.wait.until(
+                lambda d: d.find_element(
+                    By.XPATH,
+                    (f'//div[@aria-label="Follow @{user_handle}" or '
+                    f'@aria-label="Following @{user_handle}"]')
+                )
+            )
+        except TimeoutException:
+            print(f"[TwitterAPI:_get_follow_button] User @{user_handle} does not exist")
+            return None
+        return follow_button
+
+
+    def follow(self, user_handle):
+        """Follows the user
+
+        Must provide the handle without '@'
+        Returns whether the operation was successfull
+        """
+
+        follow_button = self._get_follow_button(user_handle)
+        if follow_button == None:
+            return False
+        if "Following" in follow_button.get_attribute('aria-label'):
+            print(f"[TwitterAPI:follow] You already follow @{user_handle}")
+            return False
+        try:
+            follow_button.click()
+        except:
+            return self.follow(user_handle)
+        try:
+            self.wait.until(
+                lambda d: d.find_element(
+                    By.XPATH,
+                    f'//div[@aria-label="Following @{user_handle}"]'
+                )
+            )
+        except:
+            print(f"[TwitterAPI:follow] Something went wrong...")
+            return False
+        return True
+
+
+    def unfollow(self, user_handle):
+        """Unfollows the user
+        
+        Must provide the handle without '@'
+        Returns whether the operation was successfull
+        """
+
+        follow_button = self._get_follow_button(user_handle)
+        if follow_button == None:
+            return False
+        if "Following" not in follow_button.get_attribute('aria-label'):
+            print(f"[TwitterAPI:follow] You do not follow @{user_handle}")
+            return False
+        try:
+            follow_button.click()
+        except:
+            return self.unfollow(user_handle)
+        confirm_button = self.wait.until(
+            lambda d: d.find_element(
+                By.XPATH,
+                '//div[@data-testid="confirmationSheetConfirm"]'
+            )
+        )
+        confirm_button.click()
+        try:
+            self.wait.until(
+                lambda d: d.find_element(
+                    By.XPATH,
+                    f'//div[@aria-label="Follow @{user_handle}"]'
+                )
+            )
+        except:
+            print(f"[TwitterAPI:follow] Something went wrong...")
+            return False
+        return True
+
+        
     def quit(self):
         """Ends the selenium driver session"""
 
@@ -300,3 +388,10 @@ class TwitterAPI:
 
         tweet_url = tweet_id
         return tweet_url
+
+
+    @staticmethod
+    def handle_to_url(user_handle):
+        """Convert @ to a URL"""
+
+        return f"https://twitter.com/{user_handle}"

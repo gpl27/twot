@@ -3,6 +3,7 @@
 Access Twitter functionality through code. To use this module you must
 first make sure you have selenium installed as well as chrome and the
 correct chromedrivers. For more information see the selenium site.
+You can, and should, use the python `logging` library.
 
 NOTE: Make sure the chromedriver is installed at ./driver
 
@@ -11,14 +12,21 @@ want to interact with. In the future this will change to actually
 use the ID of the tweet, this way it is easier to integrate with
 other libraries such as twint and tweepy
 
+NOTE:
+    DEBUG - Everything, including funtion returns
+    INFO  - Standard messages
+    WARN  - Solvable errors
+    ERROR - Unknown errors
+
 Author: gpl27
 """
 
 # TODO:
 #   * add error handling to undefined tweet_ids
-#   * add logger
 #   * add send dm
 #   * add check notifications/mentions
+
+import logging
 
 from selenium import webdriver
 from selenium.common.exceptions import *
@@ -29,6 +37,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.relative_locator import locate_with
 from selenium.webdriver.support.wait import WebDriverWait
 
+logger = logging.getLogger(__name__)
 
 class TwitterAPI:
     """Interface to Twitter
@@ -80,6 +89,7 @@ class TwitterAPI:
         service = Service(executable_path="driver/chromedriver")
         self.driver = webdriver.Chrome(service=service)
         self.wait = WebDriverWait(self.driver, timeout=5)
+        logger.info('TwitterAPI initialized with user @%s', username)
 
 
     def _post(self, message):
@@ -119,8 +129,9 @@ class TwitterAPI:
         Returns whether the operation was successfull
         """
 
+        logger.info('Logging in as @%s', self.username)
         if (self.__logged):
-            print(f"[TwitterAPI:login] Already logged in as {self.username}")
+            logger.warn('Already logged in as %s', self.username)
             return False
         self.driver.get("https://twitter.com/i/flow/login")
         username_input = self.wait.until(
@@ -131,13 +142,13 @@ class TwitterAPI:
             passwd_input = self.wait.until(
                 lambda d: d.find_element(By.NAME, "password"))
         except TimeoutException:
-            print(f"[TwitterAPI:login] Username not found!")
+            logger.warn('Username not found!')
             return False
         passwd_input.send_keys(self.password + Keys.ENTER)
         try:
             self.wait.until(EC.title_contains("Home"))
         except TimeoutException:
-            print(f"[TwitterAPI:login] Wrong password!")
+            logger.warn('Wrong password!')
             return False
         self.__logged = True
         return True
@@ -149,8 +160,10 @@ class TwitterAPI:
         Returns whether the operation was successfull
         """
 
+        logger.info('Logging out')
         if not self.__logged:
-            print(f"[TwitterAPI:logout] Must log in first")
+            logger.warn('Must log in first')
+            print(f"[TwitterAPIlogout] Must log in first")
             return False
         self.driver.get("https://twitter.com/logout")
         logout_button = self.wait.until(
@@ -170,10 +183,12 @@ class TwitterAPI:
         """
 
         if not self.__logged:
-            print(f"[TwitterAPI:post_tweet] Must log in first")
+            logger.warn('Must log in first')
             return ""
         self.driver.get("https://twitter.com/compose/tweet")
-        return self._post(message)
+        post_link = self._post(message)
+        logger.debug('Tweeted %s', post_link)
+        return post_link
         
     
     def reply_to_tweet(self, tweet_id, message):
@@ -184,7 +199,7 @@ class TwitterAPI:
         """
 
         if not self.__logged:
-            print(f"[TwitterAPI:reply_to_tweet] Must log in first")
+            logger.warn('Must log in first')
             return ""
         tweet_url = self.tweet_id_to_url(tweet_id)
         self.driver.get(tweet_url)
@@ -195,7 +210,9 @@ class TwitterAPI:
         except:
             return self.reply_to_tweet(tweet_id, message)
         
-        return self._post(message)
+        post_link = self._post(message)
+        logger.debug('Replied %s', post_link)
+        return post_link
 
 
     def like_tweet(self, tweet_id):
@@ -206,7 +223,7 @@ class TwitterAPI:
         """
 
         if not self.__logged:
-            print(f"[TwitterAPI:like_tweet] Must log in first")
+            logger.warn('Must log in first')
             return None
         tweet_url = self.tweet_id_to_url(tweet_id)
         self.driver.get(tweet_url)
@@ -219,6 +236,9 @@ class TwitterAPI:
             return self.like_tweet(tweet_id)
         like_label = like_button.get_attribute("aria-label")
         like_status = True if like_label == "Liked" else False
+        log_msg = like_label if like_status else "Unliked"
+        log_msg += f' {tweet_id}'
+        logger.debug(log_msg)
         return like_status
 
     
@@ -230,7 +250,7 @@ class TwitterAPI:
         """
 
         if not self.__logged:
-            print(f"[TwitterAPI:like_tweet] Must log in first")
+            logger.warn('Must log in first')
             return None
         tweet_url = self.tweet_id_to_url(tweet_id)
         self.driver.get(tweet_url)
@@ -251,6 +271,9 @@ class TwitterAPI:
         confirm_button.click()
         retweet_label = retweet_button.get_attribute("aria-label")
         retweet_status = True if retweet_label == "Retweeted" else False
+        log_msg = retweet_label if retweet_status else "Unretweeted"
+        log_msg += f' {tweet_id}'
+        logger.debug(log_msg)
         return retweet_status
 
 
@@ -261,7 +284,7 @@ class TwitterAPI:
         """
 
         if not self.__logged:
-            print(f"[TwitterAPI:quote_retweet] Must log in first")
+            logger.warn('Must log in first')
             return None
         tweet_url = self.tweet_id_to_url(tweet_id)
         self.driver.get(tweet_url)
@@ -282,12 +305,14 @@ class TwitterAPI:
         qrt = self.driver.find_element(qrt_locator)
         self.wait.until(EC.element_to_be_clickable(qrt))
         qrt.click()
-        return self._post(message)
+        post_link = self._post(message)
+        logger.debug('QuoteRetweeted %s', post_link)
+        return post_link
 
 
     def _get_follow_button(self, user_handle):
         if not self.__logged:
-            print(f"[TwitterAPI:_get_follow_button] Must log in first")
+            logger.warn('Must log in first')
             return None
         
         user_url = self.handle_to_url(user_handle)
@@ -301,7 +326,7 @@ class TwitterAPI:
                 )
             )
         except TimeoutException:
-            print(f"[TwitterAPI:_get_follow_button] User @{user_handle} does not exist")
+            logger.warn('User @%s does not exist', user_handle)
             return None
         return follow_button
 
@@ -317,7 +342,7 @@ class TwitterAPI:
         if follow_button == None:
             return False
         if "Following" in follow_button.get_attribute('aria-label'):
-            print(f"[TwitterAPI:follow] You already follow @{user_handle}")
+            logger.warn('You already follow @%s', user_handle)
             return False
         try:
             follow_button.click()
@@ -331,8 +356,9 @@ class TwitterAPI:
                 )
             )
         except:
-            print(f"[TwitterAPI:follow] Something went wrong...")
+            logger.warning('Something went wrong...')
             return False
+        logger.debug('Followed @%s', user_handle)
         return True
 
 
@@ -347,7 +373,7 @@ class TwitterAPI:
         if follow_button == None:
             return False
         if "Following" not in follow_button.get_attribute('aria-label'):
-            print(f"[TwitterAPI:follow] You do not follow @{user_handle}")
+            logger.warn('You do not follow @%s', user_handle)
             return False
         try:
             follow_button.click()
@@ -368,14 +394,16 @@ class TwitterAPI:
                 )
             )
         except:
-            print(f"[TwitterAPI:follow] Something went wrong...")
+            logger.warning('Something went wrong...')
             return False
+        logger.debug('Unfollowed @%s', user_handle)
         return True
 
         
     def quit(self):
         """Ends the selenium driver session"""
 
+        logger.info('Ending session')
         self.driver.quit()
 
     

@@ -38,13 +38,10 @@ logger.addHandler(fh)
 api = TwitterAPI('TheTwotBot', 'twotthetwitterbot')
 
 api.login()
-api.login()
 my_tweet = api.post_tweet(time.strftime('%H:%M:%S', time.localtime()))
+my_tweet += '0'
 
 api.like_tweet(my_tweet)
-my_tweet = api.reply_to_tweet(my_tweet, time.strftime('%H:%M:%S', time.localtime()))
-api.retweet(my_tweet)
-api.follow('elonmusk')
 
 api.logout()
 api.quit()

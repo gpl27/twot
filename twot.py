@@ -21,10 +21,6 @@ NOTE:
 Author: gpl27
 """
 
-# TODO:
-#   * add error handling to undefined tweet_ids
-#   * add send dm
-#   * add check notifications/mentions
 
 import logging
 
@@ -69,6 +65,8 @@ class TwitterAPI:
         Quote retweets the tweet with the specified message
     follow(user_handle)
         Follows the user with the specified handle
+    unfollow(user_handle)
+        Unfollows the user with the specified handle
     quit()
         Ends the browser session
     """
@@ -195,16 +193,20 @@ class TwitterAPI:
         """Posts a reply to the tweet
         
         `message` should be a string exactly as you want your reply to be
-        Returns the reply's ID
+        Returns the reply's ID, or None if fail
         """
 
         if not self.__logged:
             logger.warn('Must log in first')
-            return ""
+            return None
         tweet_url = self.tweet_id_to_url(tweet_id)
         self.driver.get(tweet_url)
-        reply_button = self.wait.until(
-            lambda d: d.find_element(By.XPATH, '//div[@aria-label="Reply"]'))
+        try:
+            reply_button = self.wait.until(
+                lambda d: d.find_element(By.XPATH, '//div[@aria-label="Reply"]'))
+        except TimeoutException:
+            logger.warn('Tweet does not exist: %s', tweet_id)
+            return None
         try:
             reply_button.click()
         except:
@@ -219,7 +221,7 @@ class TwitterAPI:
         """Likes/Unlikes the tweet
         
         Returns whether the tweet is now Liked (True) or
-        Unliked/default (False)
+        Unliked/default (False) or None if fail
         """
 
         if not self.__logged:
@@ -227,9 +229,13 @@ class TwitterAPI:
             return None
         tweet_url = self.tweet_id_to_url(tweet_id)
         self.driver.get(tweet_url)
-        like_button = self.wait.until(
-            lambda d: d.find_element(
-                By.XPATH, '//div[@aria-label="Like" or @aria-label="Liked"]'))
+        try:
+            like_button = self.wait.until(
+                lambda d: d.find_element(
+                    By.XPATH, '//div[@aria-label="Like" or @aria-label="Liked"]'))
+        except TimeoutException:
+            logger.warn('Tweet does not exist: %s', tweet_id)
+            return None
         try:
             like_button.click()
         except:
@@ -246,7 +252,7 @@ class TwitterAPI:
         """Retweets/Unretweets the tweet
         
         Returns whether the tweet is Retweeted (True) or
-        Unretweeted/default (False)
+        Unretweeted/default (False) or None if fail
         """
 
         if not self.__logged:
@@ -254,10 +260,14 @@ class TwitterAPI:
             return None
         tweet_url = self.tweet_id_to_url(tweet_id)
         self.driver.get(tweet_url)
-        retweet_button = self.wait.until(
-            lambda d: d.find_element(
-                By.XPATH,
-                '//div[@aria-label="Retweet" or @aria-label="Retweeted"]'))
+        try:
+            retweet_button = self.wait.until(
+                lambda d: d.find_element(
+                    By.XPATH,
+                    '//div[@aria-label="Retweet" or @aria-label="Retweeted"]'))
+        except TimeoutException:
+            logger.warn('Tweet does not exist: %s', tweet_id)
+            return None
         try:
             retweet_button.click()
         except:
@@ -280,7 +290,7 @@ class TwitterAPI:
     def quote_retweet(self, tweet_id, message):
         """Quote Retweets the tweet with the message
         
-        Returns the Quote Retweet's ID
+        Returns the Quote Retweet's ID or None if fail
         """
 
         if not self.__logged:
@@ -288,10 +298,14 @@ class TwitterAPI:
             return None
         tweet_url = self.tweet_id_to_url(tweet_id)
         self.driver.get(tweet_url)
-        retweet_button = self.wait.until(
-            lambda d: d.find_element(
-                By.XPATH,
-                '//div[@aria-label="Retweet" or @aria-label="Retweeted"]'))
+        try:
+            retweet_button = self.wait.until(
+                lambda d: d.find_element(
+                    By.XPATH,
+                    '//div[@aria-label="Retweet" or @aria-label="Retweeted"]'))
+        except TimeoutException:
+            logger.warn('Tweet does not exist: %s', tweet_id)
+            return None
         try:
             retweet_button.click()
         except:

@@ -62,8 +62,6 @@ class TwitterAPI:
         Quote retweets the tweet with the specified message
     quit()
         Ends the browser session
-    shutdown()
-        Logs the user out and ends the browser session
     """
 
     def __init__(self, username, password):
@@ -129,10 +127,18 @@ class TwitterAPI:
             lambda d: d.find_element(By.NAME, "text"))
         username_input.click()
         username_input.send_keys(self.username + Keys.ENTER)
-        passwd_input = self.wait.until(
-            lambda d: d.find_element(By.NAME, "password"))
+        try:
+            passwd_input = self.wait.until(
+                lambda d: d.find_element(By.NAME, "password"))
+        except TimeoutException:
+            print(f"[TwitterAPI:login] Username not found!")
+            return False
         passwd_input.send_keys(self.password + Keys.ENTER)
-        self.wait.until(EC.title_contains("Home"))
+        try:
+            self.wait.until(EC.title_contains("Home"))
+        except TimeoutException:
+            print(f"[TwitterAPI:login] Wrong password!")
+            return False
         self.__logged = True
         return True
 
@@ -283,13 +289,6 @@ class TwitterAPI:
         """Ends the selenium driver session"""
 
         self.driver.quit()
-
-
-    def shutdown(self):
-        """Logs out and ends the selenium driver session"""
-
-        self.logout()
-        self.quit()
 
     
     @staticmethod

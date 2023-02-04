@@ -1,4 +1,5 @@
 # twot - The Twitter Bot API
+[![CodeFactor](https://www.codefactor.io/repository/github/gpl27/twot/badge/main)](https://www.codefactor.io/repository/github/gpl27/twot/overview/main)
 ## About
 Access Twitter functionality through code. To use this module you must
 first make sure you have selenium installed as well as chrome and the
@@ -19,7 +20,6 @@ You can, and should, use the python `logging` library.
 - Improve code documentation
     - methods inputs/outputs
 - Improve README
-    - Add installation guide
     - Improve About description
     - Add those badges
 - Optimization

@@ -33,6 +33,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.relative_locator import locate_with
 from selenium.webdriver.support.wait import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +87,7 @@ class TwitterAPI:
         self.username = username
         self.password = password
         self.__logged = False
-        service = Service(executable_path="driver/chromedriver")
+        service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service)
         self.wait = WebDriverWait(self.driver, timeout=5)
         logger.info('TwitterAPI initialized with user @%s', username)

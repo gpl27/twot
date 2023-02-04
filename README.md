@@ -4,6 +4,10 @@ Access Twitter functionality through code. To use this module you must
 first make sure you have selenium installed as well as chrome and the
 correct chromedrivers. For more information see the selenium site.
 You can, and should, use the python `logging` library.
+## Installation
+1. Clone this repository
+2. `pip install -r requirements.txt`
+
 ## Features
 - tweet
 - reply
@@ -11,12 +15,7 @@ You can, and should, use the python `logging` library.
 - retweet
 - quote retweet
 - follow/unfollow
-## Requirements
-Must have selenium installed. It is also necesseary to have Chrome and
-the appropriate chromedriver intalled at `./driver`
-For further instructions see the selenium documentation
 ## TODO
-- Make the use of selenium drivers more flexible
 - Improve code documentation
     - methods inputs/outputs
 - Improve README
@@ -25,5 +24,6 @@ For further instructions see the selenium documentation
     - Add those badges
 - Optimization
     - Error checking is done through TimeoutExceptions
+- Add it to PyPI?
 - Add DirectMessaging
 - Check Mentions/Notifications?

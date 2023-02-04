@@ -6,7 +6,7 @@ Sample script of twot usage
 Logs in to an account, tweets, quote retweets, likes, and follows
 
 USAGE:
-$ ./main.py [username] [password]
+$ ./example.py [username] [password]
 
 Author: gpl27
 """

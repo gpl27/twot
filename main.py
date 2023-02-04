@@ -13,8 +13,9 @@ Author: gpl27
 
 import logging
 import time
-from twot import *
 from sys import argv
+
+from twot import TwitterAPI
 
 # Sets ups console and file logging
 logger = logging.getLogger('twot')
@@ -26,14 +27,15 @@ ch.setFormatter(ch_format)
 logger.addHandler(ch)
 fh = logging.FileHandler('main.log', mode='w')
 fh.setLevel(logging.DEBUG)
-fh_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh_format = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(fh_format)
 logger.addHandler(fh)
 
 
 def main(username, password):
     # Runs code using the TwitterAPI
-    api = TwitterAPI(username,password)
+    api = TwitterAPI(username, password)
 
     api.login()
     message = f"{time.strftime('%H:%M:%S', time.localtime())} - This is a sample tweet that was posted using twot-TheTwitterAPI"

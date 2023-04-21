@@ -1,4 +1,6 @@
 # twot - The Twitter Bot API
+![PyPI](https://img.shields.io/pypi/v/twot)
+![GitHub](https://img.shields.io/github/license/gpl27/twot)
 ## About
 This is a Python package that provides an easy-to-use interface to 
 Twitter using Selenium to emulate actions that a Twitter user might make,

@@ -15,17 +15,17 @@ To use this package, you will need:
 - Twitter Account
 ### Installation
 1. Clone this repository
-2. Install required packages `pip install -r requirements.txt`
+2. `pip install -r requirements.txt`
 ### Usage
 3. Import `TwitterAPI` class, create an instance and login:
-```
+```python
 from twot import TwitterAPI
 
 api = TwitterAPI('my_username', 'my_password')
 api.login()
 ```
 4. Use the `TwitterAPI` instance to interact with Twitter:
-```
+```python
 # Tweet something
 api.post_tweet('Hello World!')
 
@@ -37,7 +37,7 @@ api.quote_retweet('https://twitter.com/twitter/status/1234567890', 'Foo bar')
 
 ```
 5. Scrape for tweets:
-```
+```python
 # First five options are required for every search
 OPTIONS = {
     "limit": 500,

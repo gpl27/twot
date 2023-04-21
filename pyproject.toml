@@ -1,0 +1,27 @@
+[project]
+name = "twot"
+version = "0.0.1"
+authors = [
+    { name="gpl27", email="gpl27.dev@gmail.com" },
+]
+description = "The Twitter Bot API - Tweet, Follow, Like, Retweet, and more with Python without using Twitter's API"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+keywords = ["twitter", "twitter-api", "twitter-bot"]
+dependencies = [
+    "selenium>=4.0.0",
+    "webdriver-manager==3.8.5"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/gpl27/twot"
+"Bug Tracker" = "https://github.com/gpl27/twot/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -5,10 +5,8 @@ first make sure you have selenium installed as well as chrome and the
 correct chromedrivers. For more information see the selenium site.
 You can, and should, use the python `logging` library.
 
-NOTE: Make sure the chromedriver is installed at ./driver
-
 NOTE: For the time being you must provide the url to the tweet you
-want to interact with. In the future this will change to actually
+want to interact with. In the future this might change to actually
 use the ID of the tweet, this way it is easier to integrate with
 other libraries such as twint and tweepy
 
@@ -71,6 +69,8 @@ class TwitterAPI:
         Follows the user with the specified handle
     unfollow(user_handle)
         Unfollows the user with the specified handle
+    search(options)
+        Searches for tweets using Advanced Search
     quit()
         Ends the browser session
     """
@@ -106,7 +106,7 @@ class TwitterAPI:
             lambda d: d.find_element(By.XPATH,
                                      '//div[@data-testid="tweetButton"]'))
         text_input_locator = locate_with(By.XPATH,
-                                        '//div[@aria-label="Tweet text"]').above(tweet_button)
+                                         '//div[@aria-label="Tweet text"]').above(tweet_button)
         text_input = self.wait.until(
             lambda d: d.find_element(text_input_locator))
         text_input.click()
@@ -466,7 +466,8 @@ class TwitterAPI:
             link = self.root.clipboard_get()
             tweets.append(link)
             logger.debug("Found %s", link)
-            tweet_locator = locate_with(By.XPATH, '//article[@data-testid="tweet"]').below(tmp)
+            tweet_locator = locate_with(
+                By.XPATH, '//article[@data-testid="tweet"]').below(tmp)
             try:
                 tmp = self.wait.until(
                     lambda d: d.find_element(tweet_locator)
@@ -490,7 +491,8 @@ class TwitterAPI:
                 '//div[@aria-label="Delete column - undefined"]'
             )
         )
-        self.driver.execute_script("arguments[0].scrollIntoView();", delete_col)
+        self.driver.execute_script(
+            "arguments[0].scrollIntoView();", delete_col)
         delete_col.click()
 
         return tweets
@@ -516,22 +518,35 @@ class TwitterAPI:
         """Convert options dict into search string"""
         search_string = []
         search_string.append(options['words'] if 'words' in options else "")
-        search_string.append(f"\"{options['phrase']}\"" if 'phrase' in options else "")
-        search_string.append('(' + " OR ".join(options['any'].split()) + ')' if 'any' in options else "")
-        search_string.append(" ".join([f'-{word}' for word in options['none']]) if 'none' in options else "")
-        search_string.append('(' + " OR ".join([f'#{word}' for word in options['hashtags']]) + ')' if 'hashtags' in options else "")
-        search_string.append('(' + " OR ".join([f'from:{word}' for word in options['from']]) + ')' if 'from' in options else "")
-        search_string.append('(' + " OR ".join([f'to:{word}' for word in options['to']]) + ')' if 'to' in options else "")
-        search_string.append('(' + " OR ".join([f'@{word}' for word in options['mentions']]) + ')' if 'mentions' in options else "")
+        search_string.append(
+            f"\"{options['phrase']}\"" if 'phrase' in options else "")
+        search_string.append(
+            '(' + " OR ".join(options['any'].split()) + ')' if 'any' in options else "")
+        search_string.append(" ".join(
+            [f'-{word}' for word in options['none']]) if 'none' in options else "")
+        search_string.append(
+            '(' + " OR ".join([f'#{word}' for word in options['hashtags']]) + ')' if 'hashtags' in options else "")
+        search_string.append(
+            '(' + " OR ".join([f'from:{word}' for word in options['from']]) + ')' if 'from' in options else "")
+        search_string.append(
+            '(' + " OR ".join([f'to:{word}' for word in options['to']]) + ')' if 'to' in options else "")
+        search_string.append(
+            '(' + " OR ".join([f'@{word}' for word in options['mentions']]) + ')' if 'mentions' in options else "")
         search_string.append("" if options['replies'] else '-filter:replies')
-        search_string.append("filter:replies" if options['only-replies'] else "")
+        search_string.append(
+            "filter:replies" if options['only-replies'] else "")
         search_string.append("" if options['links'] else '-filter:links')
         search_string.append("filter:links" if options['only-links'] else "")
-        search_string.append(f"min-replies:{options['min-replies']}" if 'min-replies' in options else "")
-        search_string.append(f"min-faves:{options['min-likes']}" if 'min-likes' in options else "")
-        search_string.append(f"min-retweets:{options['min-rt']}" if 'min-rt' in options else "")
-        search_string.append(f"since:{options['start']}" if 'start' in options else "")
-        search_string.append(f"until:{options['end']}" if 'end' in options else "")
+        search_string.append(
+            f"min-replies:{options['min-replies']}" if 'min-replies' in options else "")
+        search_string.append(
+            f"min-faves:{options['min-likes']}" if 'min-likes' in options else "")
+        search_string.append(
+            f"min-retweets:{options['min-rt']}" if 'min-rt' in options else "")
+        search_string.append(
+            f"since:{options['start']}" if 'start' in options else "")
+        search_string.append(
+            f"until:{options['end']}" if 'end' in options else "")
 
         return " ".join(filter(None, search_string))
 
@@ -542,9 +557,9 @@ EXAMPLE_SEARCH_OPTIONS = {
     'limit': 100,               # required
     'words': "awesome",
     'phrase': "boycot",
-    'any': "fungus",  
-    'none': ["animal"],   
-    'hashtags': ["YOLO"],  
+    'any': "fungus",
+    'none': ["animal"],
+    'hashtags': ["YOLO"],
     'from': ['BarackObama'],
     'to': ['michaelreeves'],
     'mentions': ['ElonMusk'],
@@ -552,9 +567,9 @@ EXAMPLE_SEARCH_OPTIONS = {
     'only-replies': False,      # required
     'links': True,              # required
     'only-links': False,        # required
-    'min-replies': 20,   
-    'min-likes': 100,   
-    'min-rt': 10,           
-    'start': "2023-01-01", 
-    'end': "2023-03-20"   
+    'min-replies': 20,
+    'min-likes': 100,
+    'min-rt': 10,
+    'start': "2023-01-01",
+    'end': "2023-03-20"
 }

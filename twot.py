@@ -23,6 +23,7 @@ Author: gpl27
 
 
 import logging
+from tkinter import Tk
 
 from selenium import webdriver
 from selenium.common.exceptions import (ElementClickInterceptedException,
@@ -84,12 +85,14 @@ class TwitterAPI:
             The password associated with `username`
         """
 
+        self.root = Tk()
+        self.root.withdraw()
         self.username = username
         self.password = password
         self.__logged = False
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service)
-        self.wait = WebDriverWait(self.driver, timeout=5)
+        self.wait = WebDriverWait(self.driver, timeout=10)
         logger.info('TwitterAPI initialized with user @%s', username)
 
     def _post(self, message):
@@ -99,14 +102,15 @@ class TwitterAPI:
         Only call in that given context
         """
 
-        text_input = self.wait.until(
-            lambda d: d.find_element(By.XPATH,
-                                     '//div[@aria-label="Tweet text"]'))
-        text_input.click()
-        text_input.send_keys(message)
         tweet_button = self.wait.until(
             lambda d: d.find_element(By.XPATH,
                                      '//div[@data-testid="tweetButton"]'))
+        text_input_locator = locate_with(By.XPATH,
+                                        '//div[@aria-label="Tweet text"]').above(tweet_button)
+        text_input = self.wait.until(
+            lambda d: d.find_element(text_input_locator))
+        text_input.click()
+        text_input.send_keys(message)
         tweet_button.click()
         alert = self.wait.until(
             lambda d: d.find_element(
@@ -411,6 +415,62 @@ class TwitterAPI:
         logger.info('Ending session')
         self.driver.quit()
 
+    def search(self, options):
+        """Searches for tweets using Advanced Search"""
+
+        logger.info(f"Searching using {options}")
+        self.driver.get("https://tweetdeck.twitter.com/")
+        search_string = f"(from:{options['from']}) -filter:replies"
+        search_button = self.wait.until(
+            lambda d: d.find_element(
+                By.XPATH,
+                '//div[@aria-label="Search"]'
+            )
+        )
+        search_button.click()
+        search_query = self.wait.until(
+            lambda d: d.find_element(
+                By.XPATH,
+                '//div[@aria-label="Search query"]'
+            )
+        )
+        search_query.click()
+        search_query.send_keys(search_string+'\n')
+        tweets = []
+        tmp = self.wait.until(
+            lambda d: d.find_element(
+                By.XPATH,
+                '//article[@data-testid="tweet"]'
+            )
+        )
+        while len(tweets) < options['limit']:
+            self.driver.execute_script("arguments[0].scrollIntoView();", tmp)
+            share_button_locator = locate_with(
+                By.XPATH, '//div[@aria-label="Share Tweet"]').near(tmp)
+            share_button = self.wait.until(
+                lambda d: d.find_element(share_button_locator)
+            )
+            self.wait.until(EC.element_to_be_clickable(share_button))
+            share_button.click()
+            copy_link_button = self.wait.until(
+                lambda d: d.find_element(
+                    By.XPATH,
+                    '//div[@role="menuitem"]'
+                )
+            )
+            self.wait.until(EC.element_to_be_clickable(copy_link_button))
+            copy_link_button.click()
+            link = self.root.clipboard_get()
+            tweets.append(link)
+            logger.debug("Found %s", link)
+            tweet_locator = locate_with(By.XPATH, '//article[@data-testid="tweet"]').below(tmp)
+            tmp = self.wait.until(
+                lambda d: d.find_element(tweet_locator)
+            )
+
+        print(len(tweets))
+        return tweets
+
     @staticmethod
     def tweet_id_to_url(tweet_id):
         """Convert tweet ID to a URL
@@ -426,3 +486,8 @@ class TwitterAPI:
         """Convert @ to a URL"""
 
         return f"https://twitter.com/{user_handle}"
+
+
+DEFAULT_OPTIONS = {
+    
+}

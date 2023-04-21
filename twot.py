@@ -418,9 +418,11 @@ class TwitterAPI:
     def search(self, options):
         """Searches for tweets using Advanced Search"""
 
-        logger.info(f"Searching using {options}")
+        logger.info("Searching using %s", str(options))
         self.driver.get("https://tweetdeck.twitter.com/")
-        search_string = f"(from:{options['from']}) -filter:replies"
+        # Format search_string from options
+        search_string = self.format_options(options)
+
         search_button = self.wait.until(
             lambda d: d.find_element(
                 By.XPATH,
@@ -436,6 +438,7 @@ class TwitterAPI:
         )
         search_query.click()
         search_query.send_keys(search_string+'\n')
+        # Could change tweets to set for no duplicates
         tweets = []
         tmp = self.wait.until(
             lambda d: d.find_element(
@@ -464,11 +467,32 @@ class TwitterAPI:
             tweets.append(link)
             logger.debug("Found %s", link)
             tweet_locator = locate_with(By.XPATH, '//article[@data-testid="tweet"]').below(tmp)
-            tmp = self.wait.until(
-                lambda d: d.find_element(tweet_locator)
-            )
+            try:
+                tmp = self.wait.until(
+                    lambda d: d.find_element(tweet_locator)
+                )
+            except TimeoutException:
+                logger.info("Early Stop - No more tweets matching criteria.")
+                break
 
-        print(len(tweets))
+        logger.info("Found %i tweets", len(tweets))
+
+        config_button = self.wait.until(
+            lambda d: d.find_element(
+                By.XPATH,
+                f'//div[@aria-label="Open column options - {search_string}"]'
+            )
+        )
+        config_button.click()
+        delete_col = self.wait.until(
+            lambda d: d.find_element(
+                By.XPATH,
+                '//div[@aria-label="Delete column - undefined"]'
+            )
+        )
+        self.driver.execute_script("arguments[0].scrollIntoView();", delete_col)
+        delete_col.click()
+
         return tweets
 
     @staticmethod
@@ -487,7 +511,50 @@ class TwitterAPI:
 
         return f"https://twitter.com/{user_handle}"
 
+    @staticmethod
+    def format_options(options):
+        """Convert options dict into search string"""
+        search_string = []
+        search_string.append(options['words'] if 'words' in options else "")
+        search_string.append(f"\"{options['phrase']}\"" if 'phrase' in options else "")
+        search_string.append('(' + " OR ".join(options['any'].split()) + ')' if 'any' in options else "")
+        search_string.append(" ".join([f'-{word}' for word in options['none']]) if 'none' in options else "")
+        search_string.append('(' + " OR ".join([f'#{word}' for word in options['hashtags']]) + ')' if 'hashtags' in options else "")
+        search_string.append('(' + " OR ".join([f'from:{word}' for word in options['from']]) + ')' if 'from' in options else "")
+        search_string.append('(' + " OR ".join([f'to:{word}' for word in options['to']]) + ')' if 'to' in options else "")
+        search_string.append('(' + " OR ".join([f'@{word}' for word in options['mentions']]) + ')' if 'mentions' in options else "")
+        search_string.append("" if options['replies'] else '-filter:replies')
+        search_string.append("filter:replies" if options['only-replies'] else "")
+        search_string.append("" if options['links'] else '-filter:links')
+        search_string.append("filter:links" if options['only-links'] else "")
+        search_string.append(f"min-replies:{options['min-replies']}" if 'min-replies' in options else "")
+        search_string.append(f"min-faves:{options['min-likes']}" if 'min-likes' in options else "")
+        search_string.append(f"min-retweets:{options['min-rt']}" if 'min-rt' in options else "")
+        search_string.append(f"since:{options['start']}" if 'start' in options else "")
+        search_string.append(f"until:{options['end']}" if 'end' in options else "")
 
-DEFAULT_OPTIONS = {
-    
+        return " ".join(filter(None, search_string))
+
+
+# Only the options marked with required are
+# necessary to perform a search. All others are optional
+EXAMPLE_SEARCH_OPTIONS = {
+    'limit': 100,               # required
+    'words': "awesome",
+    'phrase': "boycot",
+    'any': "fungus",  
+    'none': ["animal"],   
+    'hashtags': ["YOLO"],  
+    'from': ['BarackObama'],
+    'to': ['michaelreeves'],
+    'mentions': ['ElonMusk'],
+    'replies': False,           # required
+    'only-replies': False,      # required
+    'links': True,              # required
+    'only-links': False,        # required
+    'min-replies': 20,   
+    'min-likes': 100,   
+    'min-rt': 10,           
+    'start': "2023-01-01", 
+    'end': "2023-03-20"   
 }

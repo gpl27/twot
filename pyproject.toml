@@ -1,6 +1,6 @@
 [project]
 name = "twot"
-version = "0.0.1"
+version = "0.0.4"
 authors = [
     { name="gpl27", email="gpl27.dev@gmail.com" },
 ]

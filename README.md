@@ -16,17 +16,16 @@ To use this package, you will need:
 - Chrome Browser
 - Twitter Account
 ### Installation
-1. Clone this repository
-2. `pip install -r requirements.txt`
+1. `pip install twot`
 ### Usage
-3. Import `TwitterAPI` class, create an instance and login:
+2. Import `TwitterAPI` class, create an instance and login:
 ```python
-from twot import TwitterAPI
+from twot.classes import TwitterAPI
 
 api = TwitterAPI('my_username', 'my_password')
 api.login()
 ```
-4. Use the `TwitterAPI` instance to interact with Twitter:
+3. Use the `TwitterAPI` instance to interact with Twitter:
 ```python
 # Tweet something
 api.post_tweet('Hello World!')
@@ -38,7 +37,7 @@ api.like_tweet('https://twitter.com/twitter/status/1234567890')
 api.quote_retweet('https://twitter.com/twitter/status/1234567890', 'Foo bar')
 
 ```
-5. Scrape for tweets:
+4. Scrape for tweets:
 ```python
 # First five options are required for every search
 OPTIONS = {

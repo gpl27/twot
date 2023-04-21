@@ -549,27 +549,3 @@ class TwitterAPI:
             f"until:{options['end']}" if 'end' in options else "")
 
         return " ".join(filter(None, search_string))
-
-
-# Only the options marked with required are
-# necessary to perform a search. All others are optional
-EXAMPLE_SEARCH_OPTIONS = {
-    'limit': 100,               # required
-    'words': "awesome",
-    'phrase': "boycot",
-    'any': "fungus",
-    'none': ["animal"],
-    'hashtags': ["YOLO"],
-    'from': ['BarackObama'],
-    'to': ['michaelreeves'],
-    'mentions': ['ElonMusk'],
-    'replies': False,           # required
-    'only-replies': False,      # required
-    'links': True,              # required
-    'only-links': False,        # required
-    'min-replies': 20,
-    'min-likes': 100,
-    'min-rt': 10,
-    'start': "2023-01-01",
-    'end': "2023-03-20"
-}
